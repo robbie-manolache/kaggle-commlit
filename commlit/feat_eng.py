@@ -92,12 +92,17 @@ def gen_features(token_df, sent_df, ent_df=None, tag_df=None,
                                 ["word", "comm_score"]]
     comm_score_df = comm_score_df.drop_duplicates().sort_values("comm_score")
     word_df = token_df[token_df["alpha"]==True]
+    uniq_df = word_df[["word", "length"]].drop_duplicates().sort_values("length")
     n_words = word_df.shape[0]
     n_sents = sent_df.shape[0]
     
     # generate main features
     features = {
-        "avg_word_len": word_df["length"].mean(),
+        "word_len_avg": word_df["length"].mean(),
+        "word_len_std": word_df["length"].std(),
+        "word_len_top20": uniq_df.tail(20)["length"].mean(),
+        "word_len_top10": uniq_df.tail(10)["length"].mean(),
+        "word_len_top5": uniq_df.tail(5)["length"].mean(),
         "comm_score_avg": comm_score_df["comm_score"].mean(),
         "comm_score_std": comm_score_df["comm_score"].std(),
         "comm_score_top20": comm_score_df.tail(20)["comm_score"].mean(),

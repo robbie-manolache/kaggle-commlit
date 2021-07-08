@@ -8,3 +8,4 @@ from commlit.lazykaggler.kernels import kernel_output_download
 # main functions
 from commlit.feat_eng import gen_ent_df, gen_sent_df, gen_token_df, \
     gen_tag_df, gen_features, gen_feature_df
+from commlit.word_vecs import gen_word_vec_df
