@@ -87,6 +87,8 @@ def gen_feature_df(df, nlp, freq_df,
         sent_df = gen_sent_df(doc)
         if all_ents is not None:
             ent_df = gen_ent_df(doc)
+        else:
+            ent_df = None
 
         # extract basic features
         features = gen_features(token_df, sent_df, ent_df, 
