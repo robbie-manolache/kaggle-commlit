@@ -60,4 +60,26 @@ def gen_word_vec_feat(doc, token_df=None, method="qval_fp",
         q_df.loc[:, "variable"] = q_df["idx"] + "_" + q_df["variable"]
         
     return dict(zip(q_df["variable"], q_df["value"]))
+
+def gen_word_vec_matrix(doc, nrows=100, stop_min=4, return_df=False):
+    """
+    """
+    
+    # filter stop words and non-alpha tokens
+    vecs = [token.vector for token in doc if token.is_alpha and
+            ((not token.is_stop) or (token.is_stop and len(token)>stop_min))]
+    vec_df = pd.DataFrame(vecs)
+    
+    # pad or downsample to desired numbers of rows
+    nvecs = vec_df.shape[0]
+    if nvecs < nrows:
+        vec_df = pd.concat([vec_df, vec_df.sample(nrows-nvecs)])
+    elif nvecs > nrows:
+        vec_df = vec_df.sample(nrows)
+        
+    # return output in desired format
+    if return_df:
+        return vec_df
+    else:
+        return vec_df.values
     
