@@ -10,5 +10,5 @@ from commlit.pre_proc import gen_ent_df, gen_sent_df, gen_token_df, gen_tag_df
 from commlit.base_feats import gen_base_features
 from commlit.feat_eng import gen_batch_features
 from commlit.word_vecs import gen_word_vec_feat, gen_word_vec_matrix
-from commlit.up_scale import upscale_targets
+from commlit.up_scale import upscale_targets, even_upsample
 from commlit.raw_feats import gen_raw_word_features

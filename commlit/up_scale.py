@@ -4,6 +4,7 @@
 # -------------------------- # -------------------------- #
 
 import numpy as np
+import pandas as pd
 
 def upscale_targets(df, n=10):
     """
@@ -23,3 +24,20 @@ def upscale_targets(df, n=10):
                     ).merge(up_df[["id", "target"]], on="id")
     
     return df[og_cols]
+
+def even_upsample(grp, n_row=100, n_rep=5):
+    """
+    """
+    n_grp = grp.shape[0]
+    grp_df = []
+    
+    for i in range(n_rep):
+        if n_grp >= n_row:
+            i_df = grp.sample(n_row)
+        else:
+            i_df = pd.concat([grp, grp.sample(n_row-n_grp)], 
+                             ignore_index=True)
+        i_df.loc[:, "grp_id"] = i
+        grp_df.append(i_df)
+        
+    return pd.concat(grp_df, ignore_index=True)
