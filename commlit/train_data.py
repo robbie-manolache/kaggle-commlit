@@ -8,20 +8,42 @@ from commlit.up_scale import even_upsample
 
 def gen_train_data(df, 
                    tgt_df=None,
+                   sent_df=None,
                    up_sample=True,
                    rem_punct=False, 
                    rem_stop=False,
                    min_stop_len=0.3, 
                    drop_cols=["seq", "word", "alpha"],
+                   quant_cols=["length", "comm_score"],
+                   quantiles=np.arange(0.025, 1, 0.025),
                    tgt_noise_var="length",
                    tgt_noise_mult=2,
                    up_sample_param={"n_row": 100,
                                     "n_rep": 10}):
     """
+    TO DO:
+    * quantile or full set of length and comm_score
+    * averages
+    * sentence-based features
+    * return feature names
+    * return id/grp_id frame
     """
     
+    # take copy
+    x = df.copy()
+    
+    # quantile features
+    q = {}
+    if quant_cols is not None:
+        for qc in quant_cols:
+            q_df = x[x["alpha"]==True].groupby("id")[qc]
+            q_df = q_df.quantile(quantiles).reset_index()
+            q_df = q_df.pivot("id", "level_1", qc)
+            q_df.columns = ["q" + str(np.round(i, 5)) for i in quantiles]
+            q[qc] = q_df.reset_index()  
+    
     # drop unwanted columns
-    x = df.copy().drop(drop_cols, axis=1)
+    x = x.drop(drop_cols, axis=1)
     
     # remove punctuation tokens
     if rem_punct:
@@ -35,6 +57,7 @@ def gen_train_data(df,
     # drop columns with no variance
     x_std = x.std()
     x = x.drop(x_std[x_std == 0].index.to_list(), axis=1)
+    x_cols = x.columns.to_list()
     
     # upsample even number of rows per id    
     if up_sample:
@@ -42,6 +65,14 @@ def gen_train_data(df,
                                   n_row=up_sample_param["n_row"],
                                   n_rep=up_sample_param["n_rep"]
                                   ).reset_index(drop=True)
+    
+    # get the frame
+    frame = x[["id", "grp_id"]].drop_duplicates()
+    
+    # update aggregate features
+    if quant_cols is not None:
+        for qc in quant_cols:
+            q[qc] = frame.merge(q[qc], on="id")
         
     # create target variable
     if tgt_df is not None:
@@ -60,4 +91,4 @@ def gen_train_data(df,
          for grp in x]
     x = np.stack(x)[:, :, :, np.newaxis]    
         
-    return x, y
+    return x, y, q, frame, x_cols
