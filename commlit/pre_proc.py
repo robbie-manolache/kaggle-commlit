@@ -59,7 +59,7 @@ def gen_sent_df(doc):
     """   
     
     sent_list = [{
-        "length": len(sent),
+        "sent_length": len(sent),
         "noun_chunks": len(list(sent.noun_chunks))
     } for sent in doc.sents]
     
