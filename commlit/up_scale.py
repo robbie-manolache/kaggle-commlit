@@ -35,7 +35,8 @@ def even_upsample(grp, n_row=100, n_rep=5):
         if n_grp >= n_row:
             i_df = grp.sample(n_row)
         else:
-            i_df = pd.concat([grp, grp.sample(n_row-n_grp)], 
+            i_df = pd.concat([grp]*(n_row // n_grp) + 
+                             [grp.sample(n_row % n_grp)], 
                              ignore_index=True)
         i_df.loc[:, "grp_id"] = i
         grp_df.append(i_df)

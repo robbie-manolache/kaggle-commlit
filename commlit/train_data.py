@@ -15,6 +15,7 @@ def gen_train_data(df,
                    rem_punct=False, 
                    rem_stop=False,
                    min_stop_len=0.3, 
+                   x_cols=None,
                    drop_cols=["seq", "word", "alpha"],
                    agg_excl=["seq", "word"],
                    agg_excl_vec=True,
@@ -22,13 +23,11 @@ def gen_train_data(df,
                    quantiles=np.arange(0.025, 1, 0.025),
                    tgt_noise_var="length",
                    tgt_noise_mult=2,
-                   sent_norm = {"sent_length": 50, 
-                                "noun_chunks": 10},
-                   up_sample_param={"n_row": 100,
-                                    "n_rep": 10}):
+                   sent_norm={"sent_length": 50, 
+                              "noun_chunks": 10},
+                   up_sample_param={"n_row": 125,
+                                    "n_rep": 5}):
     """
-    TO DO:
-    * sentence-based features
     """
     
     # take copy
@@ -73,10 +72,13 @@ def gen_train_data(df,
         x = x[(x["stop"]==False) | 
               (x["length"]>=min_stop_len)].drop(["stop"], axis=1)
     
-    # drop columns with no variance
-    x_std = x.std()
-    x = x.drop(x_std[x_std == 0].index.to_list(), axis=1)
-    x_cols = x.columns.to_list()
+    # drop columns with no variance, unless x_cols pre-specified
+    if x_cols is None:
+        x_std = x.std()
+        x = x.drop(x_std[x_std == 0].index.to_list(), axis=1)
+        x_cols = x.columns.to_list()
+    else:
+        x = x[x_cols]
     
     # upsample even number of rows per id    
     if up_sample:
