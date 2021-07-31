@@ -13,3 +13,4 @@ from commlit.word_vecs import gen_word_vec_feat, gen_word_vec_matrix
 from commlit.up_scale import upscale_targets, even_upsample
 from commlit.raw_feats import gen_raw_word_features
 from commlit.train_data import gen_train_data
+from commlit.build_model import build_model
