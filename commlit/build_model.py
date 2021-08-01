@@ -6,7 +6,7 @@
 import tensorflow as tf
 import keras
 
-def build_model(cnn, agg, Q, out):
+def build_model(cnn, att, agg, Q, extra, out):
     """
     """
     
@@ -24,10 +24,23 @@ def build_model(cnn, agg, Q, out):
             activation=cnn["acti"],
             kernel_regularizer=keras.regularizers.l2(cnn["l2_reg"])
         )(in_cnn)
+        
+        # "Attention" layer
+        if att is not None:
+            in_att = keras.layers.Input(shape=att["shape"][1:])
+            all_inputs.append(in_att)
+            att_x = keras.layers.Conv2D(
+                filters=att["filters"], 
+                kernel_size=(1, att["shape"][2]),
+                activation=att["acti"],
+                kernel_regularizer=keras.regularizers.l2(att["l2_reg"])
+            )(in_att)
+            cnn_x = keras.layers.Multiply()([cnn_x, att_x])
+        
         cnn_x = tf.math.reduce_mean(cnn_x, axis=1)
         cnn_x = keras.layers.Flatten()(cnn_x)
         all_layers.append(cnn_x)
-        
+      
     # agg feature layer
     if agg is not None:
         in_agg = keras.layers.Input(shape=agg["shape"])
@@ -54,7 +67,16 @@ def build_model(cnn, agg, Q, out):
             )(q_x)
         all_layers.append(q_x)
         
+    # concat layers and add extra dense layer if desired
     all_x = keras.layers.Concatenate()(all_layers)
+    if extra["use"]:
+        all_x = keras.layers.Dense(
+            extra["n"],
+            activation=extra["acti"],
+            kernel_regularizer=keras.regularizers.l2(extra["l2_reg"])
+        )(all_x)
+    
+    # output layer
     out_y = keras.layers.Dense(
         1, 
         activation=out["acti"],

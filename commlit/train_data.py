@@ -16,6 +16,7 @@ def gen_train_data(df,
                    rem_stop=False,
                    min_stop_len=0.3, 
                    x_cols=None,
+                   x_split=True,
                    drop_cols=["seq", "word", "alpha"],
                    agg_excl=["seq", "word"],
                    agg_excl_vec=True,
@@ -26,9 +27,13 @@ def gen_train_data(df,
                    sent_norm={"sent_length": 50, 
                               "noun_chunks": 10},
                    up_sample_param={"n_row": 125,
-                                    "n_rep": 5}):
+                                    "n_rep": 5},
+                   seed=42):
     """
     """
+    
+    # set seed
+    np.random.seed(seed)
     
     # take copy
     x = df.copy()
@@ -113,6 +118,14 @@ def gen_train_data(df,
     x = list(x.groupby(["id", "grp_id"]))
     x = [grp[1].drop(["id", "grp_id"], axis=1).astype(float).values 
          for grp in x]
-    x = np.stack(x)[:, :, :, np.newaxis]    
+    x = np.stack(x)[:, :, :, np.newaxis]
+    
+    # split x into two 
+    if x_split:
+        v_idx = [bool(re.match("v[0-9]+$", c)) for c in x_cols if c != "id"]
+        a_idx = [not vi for vi in v_idx]
+        x, a = x[:, :, v_idx, :], x[:, :, a_idx, :]  
+    else:
+        a = np.array(0)    
         
-    return x, y, m, q, frame, x_cols
+    return x, a, y, m, q, frame, x_cols
